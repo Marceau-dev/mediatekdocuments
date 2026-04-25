@@ -2211,8 +2211,6 @@ namespace MediaTekDocuments.view
             txbCommandeLivreNbExemplaire.Enabled = false;
         }
 
-        #endregion
-
         /// <summary>
         /// Supprime une commande de livre
         /// </summary>
@@ -2257,6 +2255,371 @@ namespace MediaTekDocuments.view
             }
         }
 
+        #endregion
+
+        #region Onglet Commandes DVD
+        private readonly BindingSource bdgCommandeDvdListe = new BindingSource();
+        private readonly BindingSource bdgCommandeDvdSuivis = new BindingSource();
+        private List<CommandeDocumentSuivi> lesCommandesDvd = new List<CommandeDocumentSuivi>();
+        private Dvd dvdCommandeSelectionne = null;
+        private string modeGestionCommandeDvd = "";
+
+        /// <summary>
+        /// Ouverture de l'onglet Commandes DVD
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tabCommandesDvd_Enter(object sender, EventArgs e)
+        {
+            lesSuivis = controller.GetAllSuivis();
+            bdgCommandeDvdSuivis.DataSource = lesSuivis;
+            cbxCommandeDvdSuivi.DataSource = bdgCommandeDvdSuivis;
+            cbxCommandeDvdSuivi.DisplayMember = "Libelle";
+            cbxCommandeDvdSuivi.ValueMember = "Id";
+            cbxCommandeDvdSuivi.SelectedIndex = -1;
+
+            ViderCommandeDvdZones();
+        }
+
+        /// <summary>
+        /// Vide la zone de gestion des commandes dvd
+        /// </summary>
+        private void ViderGestionCommandeDvd()
+        {
+            txbCommandeDvdIdCommande.Text = "";
+            dtpCommandeDvdDateCommande.Value = DateTime.Today;
+            txbCommandeDvdMontant.Text = "";
+            txbCommandeDvdNbExemplaire.Text = "";
+            cbxCommandeDvdSuivi.SelectedIndex = -1;
+        }
+
+        /// <summary>
+        /// Active ou désactive la zone de gestion des commandes dvd
+        /// </summary>
+        /// <param name="actif"></param>
+        private void ActiverGestionCommandeDvd(bool actif)
+        {
+            txbCommandeDvdIdCommande.Enabled = actif;
+            dtpCommandeDvdDateCommande.Enabled = actif;
+            txbCommandeDvdMontant.Enabled = actif;
+            txbCommandeDvdNbExemplaire.Enabled = actif;
+            cbxCommandeDvdSuivi.Enabled = actif;
+            btnValiderCommandeDvd.Enabled = actif;
+        }
+
+        /// <summary>
+        /// Vide les zones de l'onglet Commandes DVD
+        /// </summary>
+        private void ViderCommandeDvdZones()
+        {
+            txbCommandeDvdNumeroRecherche.Text = "";
+
+            txbCommandeDvdNumero.Text = "";
+            txbCommandeDvdTitre.Text = "";
+            txbCommandeDvdDuree.Text = "";
+            txbCommandeDvdRealisateur.Text = "";
+            txbCommandeDvdSynopsis.Text = "";
+            txbCommandeDvdGenre.Text = "";
+            txbCommandeDvdPublic.Text = "";
+            txbCommandeDvdRayon.Text = "";
+            txbCommandeDvdImage.Text = "";
+            pcbCommandeDvdImage.Image = null;
+
+            bdgCommandeDvdListe.DataSource = null;
+            dgvCommandeDvdListe.DataSource = bdgCommandeDvdListe;
+
+            ViderGestionCommandeDvd();
+            ActiverGestionCommandeDvd(false);
+            modeGestionCommandeDvd = "";
+            dvdCommandeSelectionne = null;
+            lesCommandesDvd = new List<CommandeDocumentSuivi>();
+        }
+
+        /// <summary>
+        /// Affichage des informations du dvd sélectionné pour les commandes
+        /// </summary>
+        /// <param name="dvd">le dvd</param>
+        private void AfficheCommandeDvdInfos(Dvd dvd)
+        {
+            txbCommandeDvdNumero.Text = dvd.Id;
+            txbCommandeDvdTitre.Text = dvd.Titre;
+            txbCommandeDvdDuree.Text = dvd.Duree.ToString();
+            txbCommandeDvdRealisateur.Text = dvd.Realisateur;
+            txbCommandeDvdSynopsis.Text = dvd.Synopsis;
+            txbCommandeDvdGenre.Text = dvd.Genre;
+            txbCommandeDvdPublic.Text = dvd.Public;
+            txbCommandeDvdRayon.Text = dvd.Rayon;
+            txbCommandeDvdImage.Text = dvd.Image;
+
+            string image = dvd.Image;
+            try
+            {
+                pcbCommandeDvdImage.Image = Image.FromFile(image);
+            }
+            catch
+            {
+                pcbCommandeDvdImage.Image = null;
+            }
+        }
+
+        /// <summary>
+        /// Remplit la liste des commandes d'un dvd
+        /// </summary>
+        /// <param name="commandes">liste des commandes</param>
+        private void RemplirCommandeDvdListe(List<CommandeDocumentSuivi> commandes)
+        {
+            bdgCommandeDvdListe.DataSource = commandes;
+            dgvCommandeDvdListe.DataSource = bdgCommandeDvdListe;
+
+            if (dgvCommandeDvdListe.Columns.Contains("Id"))
+            {
+                dgvCommandeDvdListe.Columns["Id"].Visible = false;
+            }
+            if (dgvCommandeDvdListe.Columns.Contains("IdLivreDvd"))
+            {
+                dgvCommandeDvdListe.Columns["IdLivreDvd"].Visible = false;
+            }
+            if (dgvCommandeDvdListe.Columns.Contains("IdSuivi"))
+            {
+                dgvCommandeDvdListe.Columns["IdSuivi"].Visible = false;
+            }
+
+            dgvCommandeDvdListe.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+        }
+
+        /// <summary>
+        /// Recherche un dvd pour afficher ses commandes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnCommandeDvdRecherche_Click(object sender, EventArgs e)
+        {
+            if (txbCommandeDvdNumeroRecherche.Text.Trim().Equals(""))
+            {
+                MessageBox.Show("Saisis un numéro de document.", "Information");
+                return;
+            }
+
+            List<Dvd> lesDvdTrouves = controller.GetAllDvd();
+            Dvd dvd = lesDvdTrouves.Find(x => x.Id.Equals(txbCommandeDvdNumeroRecherche.Text.Trim()));
+
+            if (dvd == null)
+            {
+                MessageBox.Show("DVD introuvable.", "Information");
+                ViderCommandeDvdZones();
+                return;
+            }
+
+            dvdCommandeSelectionne = dvd;
+            AfficheCommandeDvdInfos(dvd);
+
+            lesCommandesDvd = controller.GetCommandesDocument(dvd.Id);
+            RemplirCommandeDvdListe(lesCommandesDvd);
+        }
+
+        /// <summary>
+        /// Lance la recherche d'un dvd avec la touche Entrée
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void txbCommandeDvdNumeroRecherche_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnCommandeDvdRecherche_Click(sender, e);
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        /// <summary>
+        /// Prépare l'ajout d'une nouvelle commande de dvd
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnNouvelleCommandeDvd_Click(object sender, EventArgs e)
+        {
+            if (dvdCommandeSelectionne == null)
+            {
+                MessageBox.Show("Recherche d'abord un dvd.", "Information");
+                return;
+            }
+
+            modeGestionCommandeDvd = "ajout";
+            ViderGestionCommandeDvd();
+            ActiverGestionCommandeDvd(true);
+            txbCommandeDvdIdCommande.Enabled = true;
+            cbxCommandeDvdSuivi.SelectedValue = "00001";
+            txbCommandeDvdIdCommande.Focus();
+        }
+
+        /// <summary>
+        /// Charge une commande de dvd dans la zone de gestion
+        /// </summary>
+        /// <param name="commande">commande sélectionnée</param>
+        private void ChargerGestionCommandeDvd(CommandeDocumentSuivi commande)
+        {
+            txbCommandeDvdIdCommande.Text = commande.Id;
+            dtpCommandeDvdDateCommande.Value = commande.DateCommande;
+            txbCommandeDvdMontant.Text = commande.Montant.ToString();
+            txbCommandeDvdNbExemplaire.Text = commande.NbExemplaire.ToString();
+            cbxCommandeDvdSuivi.SelectedValue = commande.IdSuivi;
+        }
+
+        /// <summary>
+        /// Valide l'ajout ou la modification d'une commande de dvd
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnValiderCommandeDvd_Click(object sender, EventArgs e)
+        {
+            if (dvdCommandeSelectionne == null)
+            {
+                MessageBox.Show("Recherche d'abord un dvd.", "Information");
+                return;
+            }
+
+            if (txbCommandeDvdIdCommande.Text.Trim().Equals("") ||
+                txbCommandeDvdMontant.Text.Trim().Equals("") ||
+                txbCommandeDvdNbExemplaire.Text.Trim().Equals(""))
+            {
+                MessageBox.Show("Les champs obligatoires ne sont pas tous renseignés.", "Information");
+                return;
+            }
+
+            double montant;
+            if (!double.TryParse(txbCommandeDvdMontant.Text.Trim(), out montant))
+            {
+                MessageBox.Show("Le montant doit être numérique.", "Information");
+                return;
+            }
+
+            int nbExemplaire;
+            if (!int.TryParse(txbCommandeDvdNbExemplaire.Text.Trim(), out nbExemplaire))
+            {
+                MessageBox.Show("Le nombre d'exemplaires doit être numérique.", "Information");
+                return;
+            }
+
+            bool ok = false;
+
+            if (modeGestionCommandeDvd == "ajout")
+            {
+                ok = controller.CreerCommandeDocument(
+                    txbCommandeDvdIdCommande.Text.Trim(),
+                    dtpCommandeDvdDateCommande.Value.Date,
+                    montant,
+                    nbExemplaire,
+                    dvdCommandeSelectionne.Id
+                );
+            }
+            else if (modeGestionCommandeDvd == "modification")
+            {
+                if (cbxCommandeDvdSuivi.SelectedValue == null)
+                {
+                    MessageBox.Show("Sélectionne un suivi.", "Information");
+                    return;
+                }
+
+                ok = controller.ModifierSuiviCommandeDocument(
+                    txbCommandeDvdIdCommande.Text.Trim(),
+                    cbxCommandeDvdSuivi.SelectedValue.ToString()
+                );
+            }
+            else
+            {
+                MessageBox.Show("Aucune opération sélectionnée.", "Information");
+                return;
+            }
+
+            if (ok)
+            {
+                MessageBox.Show("Opération réussie.", "Information");
+                lesCommandesDvd = controller.GetCommandesDocument(dvdCommandeSelectionne.Id);
+                RemplirCommandeDvdListe(lesCommandesDvd);
+                ViderGestionCommandeDvd();
+                ActiverGestionCommandeDvd(false);
+                txbCommandeDvdIdCommande.Enabled = true;
+                dtpCommandeDvdDateCommande.Enabled = true;
+                txbCommandeDvdMontant.Enabled = true;
+                txbCommandeDvdNbExemplaire.Enabled = true;
+                modeGestionCommandeDvd = "";
+            }
+            else
+            {
+                MessageBox.Show("Opération impossible.", "Erreur");
+            }
+        }
+
+        /// <summary>
+        /// Prépare la modification du suivi d'une commande de dvd
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnModifierSuiviCommandeDvd_Click(object sender, EventArgs e)
+        {
+            if (dgvCommandeDvdListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne une commande.", "Information");
+                return;
+            }
+
+            CommandeDocumentSuivi commande = (CommandeDocumentSuivi)bdgCommandeDvdListe.List[bdgCommandeDvdListe.Position];
+            modeGestionCommandeDvd = "modification";
+            ChargerGestionCommandeDvd(commande);
+            ActiverGestionCommandeDvd(true);
+
+            txbCommandeDvdIdCommande.Enabled = false;
+            dtpCommandeDvdDateCommande.Enabled = false;
+            txbCommandeDvdMontant.Enabled = false;
+            txbCommandeDvdNbExemplaire.Enabled = false;
+        }
+
+
+        /// <summary>
+        /// Supprime une commande de dvd
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnSupprimerCommandeDvd_Click(object sender, EventArgs e)
+        {
+            if (dgvCommandeDvdListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne une commande.", "Information");
+                return;
+            }
+
+            CommandeDocumentSuivi commande = (CommandeDocumentSuivi)bdgCommandeDvdListe.List[bdgCommandeDvdListe.Position];
+
+            DialogResult reponse = MessageBox.Show(
+                "Voulez-vous vraiment supprimer cette commande ?",
+                "Confirmation",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (reponse == DialogResult.Yes)
+            {
+                if (controller.SupprimerCommandeDocument(commande.Id))
+                {
+                    MessageBox.Show("Commande supprimée.", "Information");
+                    lesCommandesDvd = controller.GetCommandesDocument(dvdCommandeSelectionne.Id);
+                    RemplirCommandeDvdListe(lesCommandesDvd);
+                    ViderGestionCommandeDvd();
+                    ActiverGestionCommandeDvd(false);
+                    txbCommandeDvdIdCommande.Enabled = true;
+                    dtpCommandeDvdDateCommande.Enabled = true;
+                    txbCommandeDvdMontant.Enabled = true;
+                    txbCommandeDvdNbExemplaire.Enabled = true;
+                    modeGestionCommandeDvd = "";
+                }
+                else
+                {
+                    MessageBox.Show("Suppression impossible.", "Erreur");
+                }
+            }
+        }
+
+        #endregion
 
     }
 }
