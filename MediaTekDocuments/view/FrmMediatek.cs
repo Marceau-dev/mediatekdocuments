@@ -50,6 +50,7 @@ namespace MediaTekDocuments.view
         #region Onglet Livres
         private readonly BindingSource bdgLivresListe = new BindingSource();
         private List<Livre> lesLivres = new List<Livre>();
+        private string modeGestionLivre = "";
 
         /// <summary>
         /// Ouverture de l'onglet Livres : 
@@ -63,7 +64,13 @@ namespace MediaTekDocuments.view
             RemplirComboCategorie(controller.GetAllGenres(), bdgGenres, cbxLivresGenres);
             RemplirComboCategorie(controller.GetAllPublics(), bdgPublics, cbxLivresPublics);
             RemplirComboCategorie(controller.GetAllRayons(), bdgRayons, cbxLivresRayons);
+
+            RemplirComboCategorie(controller.GetAllGenres(), bdgGestionLivreGenres, cbxGestionLivreGenre);
+            RemplirComboCategorie(controller.GetAllPublics(), bdgGestionLivrePublics, cbxGestionLivrePublic);
+            RemplirComboCategorie(controller.GetAllRayons(), bdgGestionLivreRayons, cbxGestionLivreRayon);
+
             RemplirLivresListeComplete();
+            ActiverGestionLivre(false);
         }
 
         /// <summary>
@@ -360,11 +367,241 @@ namespace MediaTekDocuments.view
             }
             RemplirLivresListe(sortedList);
         }
+
+        private readonly BindingSource bdgGestionLivreGenres = new BindingSource();
+        private readonly BindingSource bdgGestionLivrePublics = new BindingSource();
+        private readonly BindingSource bdgGestionLivreRayons = new BindingSource();
+
+        /// <summary>
+        /// Active ou désactive la zone de gestion des livres
+        /// </summary>
+        /// <param name="actif"></param>
+        private void ActiverGestionLivre(bool actif)
+        {
+            txbGestionLivreNumero.Enabled = actif;
+            txbGestionLivreTitre.Enabled = actif;
+            txbGestionLivreIsbn.Enabled = actif;
+            txbGestionLivreAuteur.Enabled = actif;
+            txbGestionLivreCollection.Enabled = actif;
+            txbGestionLivreImage.Enabled = actif;
+            cbxGestionLivreGenre.Enabled = actif;
+            cbxGestionLivrePublic.Enabled = actif;
+            cbxGestionLivreRayon.Enabled = actif;
+            btnValiderLivre.Enabled = actif;
+        }
+
+        /// <summary>
+        /// Vide la zone de gestion des livres
+        /// </summary>
+        private void ViderGestionLivre()
+        {
+            txbGestionLivreNumero.Text = "";
+            txbGestionLivreTitre.Text = "";
+            txbGestionLivreIsbn.Text = "";
+            txbGestionLivreAuteur.Text = "";
+            txbGestionLivreCollection.Text = "";
+            txbGestionLivreImage.Text = "";
+            cbxGestionLivreGenre.SelectedIndex = -1;
+            cbxGestionLivrePublic.SelectedIndex = -1;
+            cbxGestionLivreRayon.SelectedIndex = -1;
+        }
+
+        /// <summary>
+        /// Charge un livre dans la zone de gestion
+        /// </summary>
+        /// <param name="livre">livre à charger</param>
+        private void ChargerGestionLivre(Livre livre)
+        {
+            txbGestionLivreNumero.Text = livre.Id;
+            txbGestionLivreTitre.Text = livre.Titre;
+            txbGestionLivreIsbn.Text = livre.Isbn;
+            txbGestionLivreAuteur.Text = livre.Auteur;
+            txbGestionLivreCollection.Text = livre.Collection;
+            txbGestionLivreImage.Text = livre.Image;
+
+            cbxGestionLivreGenre.SelectedIndex = cbxGestionLivreGenre.FindStringExact(livre.Genre);
+            cbxGestionLivrePublic.SelectedIndex = cbxGestionLivrePublic.FindStringExact(livre.Public);
+            cbxGestionLivreRayon.SelectedIndex = cbxGestionLivreRayon.FindStringExact(livre.Rayon);
+        }
+
+        /// <summary>
+        /// Prépare l'ajout d'un nouveau livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnNouveauLivre_Click(object sender, EventArgs e)
+        {
+            modeGestionLivre = "ajout";
+            txbGestionLivreNumero.Enabled = true;
+            ViderGestionLivre();
+            ActiverGestionLivre(true);
+            txbGestionLivreNumero.Focus();
+        }
+
+        /// <summary>
+        /// Prépare la modification d'un livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnModifierLivre_Click(object sender, EventArgs e)
+        {
+            if (dgvLivresListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne un livre.", "Information");
+                return;
+            }
+
+            Livre livre = (Livre)bdgLivresListe.List[bdgLivresListe.Position];
+            modeGestionLivre = "modification";
+            ChargerGestionLivre(livre);
+            ActiverGestionLivre(true);
+            txbGestionLivreNumero.Enabled = false;
+        }
+
+
+        /// <summary>
+        /// Valide les modifications ou l'ajout d'un livre selon le mode de gestion (modification ou ajout)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnValidationLivre_Click(object sender, EventArgs e)
+        {
+            if (txbGestionLivreNumero.Text.Trim().Equals("") ||
+                txbGestionLivreTitre.Text.Trim().Equals("") ||
+                cbxGestionLivreGenre.SelectedItem == null ||
+                cbxGestionLivrePublic.SelectedItem == null ||
+                cbxGestionLivreRayon.SelectedItem == null)
+            {
+                MessageBox.Show("Les champs obligatoires ne sont pas tous renseignés.", "Information");
+                return;
+            }
+
+            Genre genre = (Genre)cbxGestionLivreGenre.SelectedItem;
+            Public lePublic = (Public)cbxGestionLivrePublic.SelectedItem;
+            Rayon rayon = (Rayon)cbxGestionLivreRayon.SelectedItem;
+
+            Livre livre = new Livre(
+                txbGestionLivreNumero.Text.Trim(),
+                txbGestionLivreTitre.Text.Trim(),
+                txbGestionLivreImage.Text.Trim(),
+                txbGestionLivreIsbn.Text.Trim(),
+                txbGestionLivreAuteur.Text.Trim(),
+                txbGestionLivreCollection.Text.Trim(),
+                genre.Id,
+                genre.Libelle,
+                lePublic.Id,
+                lePublic.Libelle,
+                rayon.Id,
+                rayon.Libelle
+            );
+
+            bool ok = false;
+
+            if (modeGestionLivre == "ajout")
+            {
+                ok = controller.CreerLivre(livre);
+            }
+            else if (modeGestionLivre == "modification")
+            {
+                ok = controller.ModifierLivre(txbGestionLivreNumero.Text.Trim(), livre);
+            }
+            else
+            {
+                MessageBox.Show("Aucune opération sélectionnée.", "Information");
+                return;
+            }
+
+            if (ok)
+            {
+                MessageBox.Show("Opération réussie.", "Information");
+                lesLivres = controller.GetAllLivres();
+                RemplirLivresListeComplete();
+                ViderGestionLivre();
+                ActiverGestionLivre(false);
+                txbGestionLivreNumero.Enabled = true;
+                modeGestionLivre = "";
+            }
+            else
+            {
+                MessageBox.Show("Opération impossible.", "Erreur");
+            }
+        }
+
+
+        /// <summary>
+        /// Supprime un livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnSupprimerLivre_Click(object sender, EventArgs e)
+        {
+            if (dgvLivresListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne un livre.", "Information");
+                return;
+            }
+
+            Livre livre = (Livre)bdgLivresListe.List[bdgLivresListe.Position];
+
+            DialogResult reponse = MessageBox.Show(
+                "Voulez-vous vraiment supprimer ce livre ?",
+                "Confirmation",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (reponse == DialogResult.Yes)
+            {
+                if (controller.SupprimerLivre(livre.Id))
+                {
+                    MessageBox.Show("Livre supprimé.", "Information");
+                    lesLivres = controller.GetAllLivres();
+                    RemplirLivresListeComplete();
+                    ViderGestionLivre();
+                    ActiverGestionLivre(false);
+                    modeGestionLivre = "";
+                }
+                else
+                {
+                    MessageBox.Show("Suppression impossible : le livre possède des exemplaires ou des commandes.", "Erreur");
+                }
+            }
+        }
+
+
         #endregion
 
         #region Onglet Dvd
         private readonly BindingSource bdgDvdListe = new BindingSource();
         private List<Dvd> lesDvd = new List<Dvd>();
+
+        private void ActiverGestionDvd(bool actif)
+        {
+            txbGestionDvdNumero.Enabled = actif;
+            txbGestionDvdTitre.Enabled = actif;
+            txbGestionDvdDuree.Enabled = actif;
+            txbGestionDvdRealisateur.Enabled = actif;
+            txbGestionDvdSynopsis.Enabled = actif;
+            txbGestionDvdImage.Enabled = actif;
+            cbxGestionDvdGenre.Enabled = actif;
+            cbxGestionDvdPublic.Enabled = actif;
+            cbxGestionDvdRayon.Enabled = actif;
+            btnValiderDvd.Enabled = actif;
+        }
+
+        private void ViderGestionDvd()
+        {
+            txbGestionDvdNumero.Text = "";
+            txbGestionDvdTitre.Text = "";
+            txbGestionDvdDuree.Text = "";
+            txbGestionDvdRealisateur.Text = "";
+            txbGestionDvdSynopsis.Text = "";
+            txbGestionDvdImage.Text = "";
+            cbxGestionDvdGenre.SelectedIndex = -1;
+            cbxGestionDvdPublic.SelectedIndex = -1;
+            cbxGestionDvdRayon.SelectedIndex = -1;
+        }
+
 
         /// <summary>
         /// Ouverture de l'onglet Dvds : 
@@ -378,6 +615,12 @@ namespace MediaTekDocuments.view
             RemplirComboCategorie(controller.GetAllGenres(), bdgGenres, cbxDvdGenres);
             RemplirComboCategorie(controller.GetAllPublics(), bdgPublics, cbxDvdPublics);
             RemplirComboCategorie(controller.GetAllRayons(), bdgRayons, cbxDvdRayons);
+
+            RemplirComboCategorie(controller.GetAllGenres(), bdgGestionDvdGenres, cbxGestionDvdGenre);
+            RemplirComboCategorie(controller.GetAllPublics(), bdgGestionDvdPublics, cbxGestionDvdPublic);
+            RemplirComboCategorie(controller.GetAllRayons(), bdgGestionDvdRayons, cbxGestionDvdRayon);
+            ActiverGestionDvd(false);
+
             RemplirDvdListeComplete();
         }
 
@@ -486,6 +729,25 @@ namespace MediaTekDocuments.view
                 pcbDvdImage.Image = null;
             }
         }
+
+        /// <summary>
+        /// Charge les informations d'un dvd dans la zone de gestion
+        /// </summary>
+        /// <param name="dvd">dvd à charger</param>
+        private void ChargerGestionDvd(Dvd dvd)
+        {
+            txbGestionDvdNumero.Text = dvd.Id;
+            txbGestionDvdTitre.Text = dvd.Titre;
+            txbGestionDvdDuree.Text = dvd.Duree.ToString();
+            txbGestionDvdRealisateur.Text = dvd.Realisateur;
+            txbGestionDvdSynopsis.Text = dvd.Synopsis;
+            txbGestionDvdImage.Text = dvd.Image;
+
+            cbxGestionDvdGenre.SelectedIndex = cbxGestionDvdGenre.FindStringExact(dvd.Genre);
+            cbxGestionDvdPublic.SelectedIndex = cbxGestionDvdPublic.FindStringExact(dvd.Public);
+            cbxGestionDvdRayon.SelectedIndex = cbxGestionDvdRayon.FindStringExact(dvd.Rayon);
+        }
+
 
         /// <summary>
         /// Vide les zones d'affichage des informations du dvd
@@ -675,6 +937,153 @@ namespace MediaTekDocuments.view
             }
             RemplirDvdListe(sortedList);
         }
+
+        private readonly BindingSource bdgGestionDvdGenres = new BindingSource();
+        private readonly BindingSource bdgGestionDvdPublics = new BindingSource();
+        private readonly BindingSource bdgGestionDvdRayons = new BindingSource();
+        private string modeGestionDvd = "";
+
+
+        private void btnNouveauDvd_Click(object sender, EventArgs e)
+        {
+            modeGestionDvd = "ajout";
+            ViderGestionDvd();
+            ActiverGestionDvd(true);
+            txbGestionDvdNumero.Enabled = true;
+            txbGestionDvdNumero.Focus();
+        }
+
+        private void btnValiderDvd_Click(object sender, EventArgs e)
+        {
+            if (txbGestionDvdNumero.Text.Trim().Equals("") ||
+                txbGestionDvdTitre.Text.Trim().Equals("") ||
+                txbGestionDvdDuree.Text.Trim().Equals("") ||
+                cbxGestionDvdGenre.SelectedItem == null ||
+                cbxGestionDvdPublic.SelectedItem == null ||
+                cbxGestionDvdRayon.SelectedItem == null)
+            {
+                MessageBox.Show("Les champs obligatoires ne sont pas tous renseignés.", "Information");
+                return;
+            }
+
+            int duree;
+            if (!int.TryParse(txbGestionDvdDuree.Text.Trim(), out duree))
+            {
+                MessageBox.Show("La durée doit être numérique.", "Information");
+                return;
+            }
+
+            Genre genre = (Genre)cbxGestionDvdGenre.SelectedItem;
+            Public lePublic = (Public)cbxGestionDvdPublic.SelectedItem;
+            Rayon rayon = (Rayon)cbxGestionDvdRayon.SelectedItem;
+
+            Dvd dvd = new Dvd(
+                txbGestionDvdNumero.Text.Trim(),
+                txbGestionDvdTitre.Text.Trim(),
+                txbGestionDvdImage.Text.Trim(),
+                duree,
+                txbGestionDvdRealisateur.Text.Trim(),
+                txbGestionDvdSynopsis.Text.Trim(),
+                genre.Id,
+                genre.Libelle,
+                lePublic.Id,
+                lePublic.Libelle,
+                rayon.Id,
+                rayon.Libelle
+            );
+
+            bool ok = false;
+
+            if (modeGestionDvd == "ajout")
+            {
+                ok = controller.CreerDvd(dvd);
+            }
+            else if (modeGestionDvd == "modification")
+            {
+                ok = controller.ModifierDvd(txbGestionDvdNumero.Text.Trim(), dvd);
+            }
+            else
+            {
+                MessageBox.Show("Aucune opération sélectionnée.", "Information");
+                return;
+            }
+
+            if (ok)
+            {
+                MessageBox.Show("Opération réussie.", "Information");
+                lesDvd = controller.GetAllDvd();
+                RemplirDvdListeComplete();
+                ViderGestionDvd();
+                ActiverGestionDvd(false);
+                txbGestionDvdNumero.Enabled = true;
+                modeGestionDvd = "";
+            }
+            else
+            {
+                MessageBox.Show("Opération impossible.", "Erreur");
+            }
+
+        }
+
+        /// <summary>
+        /// Prépare la modification d'un dvd
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnModifierDvd_Click(object sender, EventArgs e)
+        {
+            if (dgvDvdListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne un dvd.", "Information");
+                return;
+            }
+
+            Dvd dvd = (Dvd)bdgDvdListe.List[bdgDvdListe.Position];
+            modeGestionDvd = "modification";
+            ChargerGestionDvd(dvd);
+            ActiverGestionDvd(true);
+            txbGestionDvdNumero.Enabled = false;
+        }
+
+        /// <summary>
+        /// Supprime un dvd
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnSupprimerDvd_Click(object sender, EventArgs e)
+        {
+            if (dgvDvdListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne un dvd.", "Information");
+                return;
+            }
+
+            Dvd dvd = (Dvd)bdgDvdListe.List[bdgDvdListe.Position];
+
+            DialogResult reponse = MessageBox.Show(
+                "Voulez-vous vraiment supprimer ce dvd ?",
+                "Confirmation",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (reponse == DialogResult.Yes)
+            {
+                if (controller.SupprimerDvd(dvd.Id))
+                {
+                    MessageBox.Show("DVD supprimé.", "Information");
+                    lesDvd = controller.GetAllDvd();
+                    RemplirDvdListeComplete();
+                    ViderGestionDvd();
+                    ActiverGestionDvd(false);
+                    modeGestionDvd = "";
+                }
+                else
+                {
+                    MessageBox.Show("Suppression impossible : le dvd possède des exemplaires ou des commandes.", "Erreur");
+                }
+            }
+        }
         #endregion
 
         #region Onglet Revues
@@ -693,7 +1102,77 @@ namespace MediaTekDocuments.view
             RemplirComboCategorie(controller.GetAllGenres(), bdgGenres, cbxRevuesGenres);
             RemplirComboCategorie(controller.GetAllPublics(), bdgPublics, cbxRevuesPublics);
             RemplirComboCategorie(controller.GetAllRayons(), bdgRayons, cbxRevuesRayons);
+
+            RemplirComboCategorie(controller.GetAllGenres(), bdgGestionRevueGenres, cbxGestionRevueGenre);
+            RemplirComboCategorie(controller.GetAllPublics(), bdgGestionRevuePublics, cbxGestionRevuePublic);
+            RemplirComboCategorie(controller.GetAllRayons(), bdgGestionRevueRayons, cbxGestionRevueRayon);
+
+            RemplirComboPeriodicite();
+
+            ActiverGestionRevue(false);
+
             RemplirRevuesListeComplete();
+        }
+
+        /// <summary>
+        /// Active ou désactive la zone de gestion des revues
+        /// </summary>
+        /// <param name="actif"></param>
+        private void ActiverGestionRevue(bool actif)
+        {
+            txbGestionRevueNumero.Enabled = actif;
+            txbGestionRevueTitre.Enabled = actif;
+            cbxGestionRevuePeriodicite.Enabled = actif;
+            txbGestionRevueDelaiMiseADispo.Enabled = actif;
+            txbGestionRevueImage.Enabled = actif;
+            cbxGestionRevueGenre.Enabled = actif;
+            cbxGestionRevuePublic.Enabled = actif;
+            cbxGestionRevueRayon.Enabled = actif;
+            btnValiderRevue.Enabled = actif;
+        }
+
+        /// <summary>
+        /// Vide la zone de gestion des revues
+        /// </summary>
+        private void ViderGestionRevue()
+        {
+            txbGestionRevueNumero.Text = "";
+            txbGestionRevueTitre.Text = "";
+            cbxGestionRevuePeriodicite.SelectedIndex = -1;
+            txbGestionRevueDelaiMiseADispo.Text = "";
+            txbGestionRevueImage.Text = "";
+            cbxGestionRevueGenre.SelectedIndex = -1;
+            cbxGestionRevuePublic.SelectedIndex = -1;
+            cbxGestionRevueRayon.SelectedIndex = -1;
+        }
+
+        /// <summary>
+        /// Remplit la liste des périodicités
+        /// </summary>
+        private void RemplirComboPeriodicite()
+        {
+            cbxGestionRevuePeriodicite.Items.Clear();
+            cbxGestionRevuePeriodicite.Items.Add("QT");
+            cbxGestionRevuePeriodicite.Items.Add("HB");
+            cbxGestionRevuePeriodicite.Items.Add("MS");
+            cbxGestionRevuePeriodicite.SelectedIndex = -1;
+        }
+
+        /// <summary>
+        /// Charge les informations d'une revue dans la zone de gestion
+        /// </summary>
+        /// <param name="revue">revue à charger</param>
+        private void ChargerGestionRevue(Revue revue)
+        {
+            txbGestionRevueNumero.Text = revue.Id;
+            txbGestionRevueTitre.Text = revue.Titre;
+            txbGestionRevueImage.Text = revue.Image;
+            txbGestionRevueDelaiMiseADispo.Text = revue.DelaiMiseADispo.ToString();
+
+            cbxGestionRevueGenre.SelectedIndex = cbxGestionRevueGenre.FindStringExact(revue.Genre);
+            cbxGestionRevuePublic.SelectedIndex = cbxGestionRevuePublic.FindStringExact(revue.Public);
+            cbxGestionRevueRayon.SelectedIndex = cbxGestionRevueRayon.FindStringExact(revue.Rayon);
+            cbxGestionRevuePeriodicite.SelectedItem = revue.Periodicite;
         }
 
         /// <summary>
@@ -987,6 +1466,164 @@ namespace MediaTekDocuments.view
             }
             RemplirRevuesListe(sortedList);
         }
+
+        private readonly BindingSource bdgGestionRevueGenres = new BindingSource();
+        private readonly BindingSource bdgGestionRevuePublics = new BindingSource();
+        private readonly BindingSource bdgGestionRevueRayons = new BindingSource();
+        private string modeGestionRevue = "";
+        /// <summary>
+        /// Prépare l'ajout d'une nouvelle revue
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnNouveauRevue_Click(object sender, EventArgs e)
+        {
+
+            modeGestionRevue = "ajout";
+            ViderGestionRevue();
+            ActiverGestionRevue(true);
+            txbGestionRevueNumero.Enabled = true;
+            txbGestionRevueNumero.Focus();
+        }
+
+        /// <summary>
+        /// Valide l'ajout d'une revue
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnValiderRevue_Click(object sender, EventArgs e)
+        {
+            if (txbGestionRevueNumero.Text.Trim().Equals("") ||
+                txbGestionRevueTitre.Text.Trim().Equals("") ||
+                cbxGestionRevuePeriodicite.SelectedItem == null ||
+                txbGestionRevueDelaiMiseADispo.Text.Trim().Equals("") ||
+                cbxGestionRevueGenre.SelectedItem == null ||
+                cbxGestionRevuePublic.SelectedItem == null ||
+                cbxGestionRevueRayon.SelectedItem == null)
+            {
+                MessageBox.Show("Les champs obligatoires ne sont pas tous renseignés.", "Information");
+                return;
+            }
+
+            int delai;
+            if (!int.TryParse(txbGestionRevueDelaiMiseADispo.Text.Trim(), out delai))
+            {
+                MessageBox.Show("Le délai de mise à disposition doit être numérique.", "Information");
+                return;
+            }
+
+            Genre genre = (Genre)cbxGestionRevueGenre.SelectedItem;
+            Public lePublic = (Public)cbxGestionRevuePublic.SelectedItem;
+            Rayon rayon = (Rayon)cbxGestionRevueRayon.SelectedItem;
+            string periodicite = cbxGestionRevuePeriodicite.SelectedItem.ToString();
+
+            Revue revue = new Revue(
+                txbGestionRevueNumero.Text.Trim(),
+                txbGestionRevueTitre.Text.Trim(),
+                txbGestionRevueImage.Text.Trim(),
+                genre.Id,
+                genre.Libelle,
+                lePublic.Id,
+                lePublic.Libelle,
+                rayon.Id,
+                rayon.Libelle,
+                periodicite,
+                delai
+            );
+
+            bool ok = false;
+
+            if (modeGestionRevue == "ajout")
+            {
+                ok = controller.CreerRevue(revue);
+            }
+            else if (modeGestionRevue == "modification")
+            {
+                ok = controller.ModifierRevue(txbGestionRevueNumero.Text.Trim(), revue);
+            }
+            else
+            {
+                MessageBox.Show("Aucune opération sélectionnée.", "Information");
+                return;
+            }
+
+            if (ok)
+            {
+                MessageBox.Show("Opération réussie.", "Information");
+                lesRevues = controller.GetAllRevues();
+                RemplirRevuesListeComplete();
+                ViderGestionRevue();
+                ActiverGestionRevue(false);
+                txbGestionRevueNumero.Enabled = true;
+                modeGestionRevue = "";
+            }
+            else
+            {
+                MessageBox.Show("Opération impossible.", "Erreur");
+            }
+
+        }
+
+        /// <summary>
+        /// Prépare la modification d'une revue
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnModifierRevue_Click(object sender, EventArgs e)
+        {
+            if (dgvRevuesListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne une revue.", "Information");
+                return;
+            }
+
+            Revue revue = (Revue)bdgRevuesListe.List[bdgRevuesListe.Position];
+            modeGestionRevue = "modification";
+            ChargerGestionRevue(revue);
+            ActiverGestionRevue(true);
+            txbGestionRevueNumero.Enabled = false;
+        }
+
+        /// <summary>
+        /// Supprime une revue
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnSupprimerRevue_Click(object sender, EventArgs e)
+        {
+            if (dgvRevuesListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne une revue.", "Information");
+                return;
+            }
+
+            Revue revue = (Revue)bdgRevuesListe.List[bdgRevuesListe.Position];
+
+            DialogResult reponse = MessageBox.Show(
+                "Voulez-vous vraiment supprimer cette revue ?",
+                "Confirmation",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (reponse == DialogResult.Yes)
+            {
+                if (controller.SupprimerRevue(revue.Id))
+                {
+                    MessageBox.Show("Revue supprimée.", "Information");
+                    lesRevues = controller.GetAllRevues();
+                    RemplirRevuesListeComplete();
+                    ViderGestionRevue();
+                    ActiverGestionRevue(false);
+                    txbGestionRevueNumero.Enabled = true;
+                    modeGestionRevue = "";
+                }
+                else
+                {
+                    MessageBox.Show("Suppression impossible.", "Erreur");
+                }
+            }
+        }
         #endregion
 
         #region Onglet Paarutions
@@ -1239,5 +1876,394 @@ namespace MediaTekDocuments.view
             }
         }
         #endregion
+
+        #region Onglet Commandes Livres
+        private readonly BindingSource bdgCommandeLivresListe = new BindingSource();
+        private readonly BindingSource bdgCommandeLivreSuivis = new BindingSource();
+        private List<CommandeDocumentSuivi> lesCommandesLivres = new List<CommandeDocumentSuivi>();
+        private List<Suivi> lesSuivis = new List<Suivi>();
+        private Livre livreCommandeSelectionne = null;
+
+        /// <summary>
+        /// Ouverture de l'onglet Commandes Livres
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tabCommandesLivres_Enter(object sender, EventArgs e)
+        {
+            lesSuivis = controller.GetAllSuivis();
+            bdgCommandeLivreSuivis.DataSource = lesSuivis;
+            cbxCommandeLivreSuivi.DataSource = bdgCommandeLivreSuivis;
+            cbxCommandeLivreSuivi.DisplayMember = "Libelle";
+            cbxCommandeLivreSuivi.ValueMember = "Id";
+            cbxCommandeLivreSuivi.SelectedIndex = -1;
+
+            ViderCommandeLivreZones();
+        }
+
+        /// <summary>
+        /// Vide les zones de l'onglet Commandes Livres
+        /// </summary>
+        private void ViderCommandeLivreZones()
+        {
+            txbCommandeLivreNumeroRecherche.Text = "";
+
+            txbCommandeLivreNumero.Text = "";
+            txbCommandeLivreTitre.Text = "";
+            txbCommandeLivreAuteur.Text = "";
+            txbCommandeLivreCollection.Text = "";
+            txbCommandeLivreIsbn.Text = "";
+            txbCommandeLivreGenre.Text = "";
+            txbCommandeLivrePublic.Text = "";
+            txbCommandeLivreRayon.Text = "";
+            txbCommandeLivreImage.Text = "";
+            pcbCommandeLivresImage.Image = null;
+
+            txbCommandeLivreIdCommande.Text = "";
+            txbCommandeLivreMontant.Text = "";
+            txbCommandeLivreNbExemplaire.Text = "";
+            cbxCommandeLivreSuivi.SelectedIndex = -1;
+
+            bdgCommandeLivresListe.DataSource = null;
+            dgvCommandeLivresListe.DataSource = bdgCommandeLivresListe;
+
+            livreCommandeSelectionne = null;
+            lesCommandesLivres = new List<CommandeDocumentSuivi>();
+
+            ViderGestionCommandeLivre();
+            ActiverGestionCommandeLivre(false);
+            modeGestionCommandeLivre = "";
+        }
+
+        /// <summary>
+        /// Affichage des informations du livre sélectionné pour les commandes
+        /// </summary>
+        /// <param name="livre">le livre</param>
+        private void AfficheCommandeLivreInfos(Livre livre)
+        {
+            txbCommandeLivreNumero.Text = livre.Id;
+            txbCommandeLivreTitre.Text = livre.Titre;
+            txbCommandeLivreAuteur.Text = livre.Auteur;
+            txbCommandeLivreCollection.Text = livre.Collection;
+            txbCommandeLivreIsbn.Text = livre.Isbn;
+            txbCommandeLivreGenre.Text = livre.Genre;
+            txbCommandeLivrePublic.Text = livre.Public;
+            txbCommandeLivreRayon.Text = livre.Rayon;
+            txbCommandeLivreImage.Text = livre.Image;
+
+            string image = livre.Image;
+            try
+            {
+                pcbCommandeLivresImage.Image = Image.FromFile(image);
+            }
+            catch
+            {
+                pcbCommandeLivresImage.Image = null;
+            }
+        }
+
+        /// <summary>
+        /// Remplit la liste des commandes d'un livre
+        /// </summary>
+        /// <param name="commandes">liste des commandes</param>
+        private void RemplirCommandeLivresListe(List<CommandeDocumentSuivi> commandes)
+        {
+            bdgCommandeLivresListe.DataSource = commandes;
+            dgvCommandeLivresListe.DataSource = bdgCommandeLivresListe;
+
+            if (dgvCommandeLivresListe.Columns.Contains("Id"))
+            {
+                dgvCommandeLivresListe.Columns["Id"].Visible = false;
+            }
+            if (dgvCommandeLivresListe.Columns.Contains("IdLivreDvd"))
+            {
+                dgvCommandeLivresListe.Columns["IdLivreDvd"].Visible = false;
+            }
+            if (dgvCommandeLivresListe.Columns.Contains("IdSuivi"))
+            {
+                dgvCommandeLivresListe.Columns["IdSuivi"].Visible = false;
+            }
+
+            dgvCommandeLivresListe.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+        }
+
+        /// <summary>
+        /// Recherche un livre pour afficher ses commandes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnCommandeLivreRecherche_Click(object sender, EventArgs e)
+        {
+            if (txbCommandeLivreNumeroRecherche.Text.Trim().Equals(""))
+            {
+                MessageBox.Show("Saisis un numéro de document.", "Information");
+                return;
+            }
+
+            List<Livre> lesLivres = controller.GetAllLivres();
+            Livre livre = lesLivres.Find(x => x.Id.Equals(txbCommandeLivreNumeroRecherche.Text.Trim()));
+
+            if (livre == null)
+            {
+                MessageBox.Show("Livre introuvable.", "Information");
+                ViderCommandeLivreZones();
+                return;
+            }
+
+            livreCommandeSelectionne = livre;
+            AfficheCommandeLivreInfos(livre);
+
+            lesCommandesLivres = controller.GetCommandesDocument(livre.Id);
+            RemplirCommandeLivresListe(lesCommandesLivres);
+        }
+
+        private string modeGestionCommandeLivre = "";
+
+        /// <summary>
+        /// Active ou désactive la zone de gestion des commandes livres
+        /// </summary>
+        /// <param name="actif"></param>
+        private void ActiverGestionCommandeLivre(bool actif)
+        {
+            txbCommandeLivreIdCommande.Enabled = actif;
+            dtpCommandeLivreDateCommande.Enabled = actif;
+            txbCommandeLivreMontant.Enabled = actif;
+            txbCommandeLivreNbExemplaire.Enabled = actif;
+            cbxCommandeLivreSuivi.Enabled = actif;
+            btnValiderCommandeLivre.Enabled = actif;
+        }
+
+        /// <summary>
+        /// Vide la zone de gestion des commandes livres
+        /// </summary>
+        private void ViderGestionCommandeLivre()
+        {
+            txbCommandeLivreIdCommande.Text = "";
+            dtpCommandeLivreDateCommande.Value = DateTime.Today;
+            txbCommandeLivreMontant.Text = "";
+            txbCommandeLivreNbExemplaire.Text = "";
+            cbxCommandeLivreSuivi.SelectedIndex = -1;
+        }
+
+        /// <summary>
+        /// Prépare l'ajout d'une nouvelle commande de livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnNouvelleCommandeLivre_Click(object sender, EventArgs e)
+        {
+            if (livreCommandeSelectionne == null)
+            {
+                MessageBox.Show("Recherche d'abord un livre.", "Information");
+                return;
+            }
+
+            modeGestionCommandeLivre = "ajout";
+            ViderGestionCommandeLivre();
+            ActiverGestionCommandeLivre(true);
+            txbCommandeLivreIdCommande.Enabled = true;
+            cbxCommandeLivreSuivi.SelectedValue = "00001";
+            txbCommandeLivreIdCommande.Focus();
+        }
+
+        /// <summary>
+        /// Lance la recherche d'un livre avec la touche Entrée
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void txbCommandeLivreNumeroRecherche_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                btnCommandeLivreRecherche_Click(sender, e);
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        /// <summary>
+        /// Valide l'ajout d'une commande de livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnValiderCommandeLivre_Click(object sender, EventArgs e)
+        {
+            if (livreCommandeSelectionne == null)
+            {
+                MessageBox.Show("Recherche d'abord un livre.", "Information");
+                return;
+            }
+
+            if (txbCommandeLivreIdCommande.Text.Trim().Equals("") ||
+                txbCommandeLivreMontant.Text.Trim().Equals("") ||
+                txbCommandeLivreNbExemplaire.Text.Trim().Equals(""))
+            {
+                MessageBox.Show("Les champs obligatoires ne sont pas tous renseignés.", "Information");
+                return;
+            }
+
+            double montant;
+            if (!double.TryParse(txbCommandeLivreMontant.Text.Trim(), out montant))
+            {
+                MessageBox.Show("Le montant doit être numérique.", "Information");
+                return;
+            }
+
+            int nbExemplaire;
+            if (!int.TryParse(txbCommandeLivreNbExemplaire.Text.Trim(), out nbExemplaire))
+            {
+                MessageBox.Show("Le nombre d'exemplaires doit être numérique.", "Information");
+                return;
+            }
+
+            bool ok = false;
+
+            if (modeGestionCommandeLivre == "ajout")
+            {
+                CommandeDocumentSuivi commandeExistante = lesCommandesLivres.Find(x => x.Id.Equals(txbCommandeLivreIdCommande.Text.Trim()));
+                if (commandeExistante != null)
+                {
+                    MessageBox.Show("Le numéro de commande existe déjà.", "Information");
+                    return;
+                }
+
+                ok = controller.CreerCommandeDocument(
+                    txbCommandeLivreIdCommande.Text.Trim(),
+                    dtpCommandeLivreDateCommande.Value.Date,
+                    montant,
+                    nbExemplaire,
+                    livreCommandeSelectionne.Id
+                );
+            }
+            else if (modeGestionCommandeLivre == "modification")
+            {
+                if (cbxCommandeLivreSuivi.SelectedValue == null)
+                {
+                    MessageBox.Show("Sélectionne un suivi.", "Information");
+                    return;
+                }
+
+                ok = controller.ModifierSuiviCommandeDocument(
+                    txbCommandeLivreIdCommande.Text.Trim(),
+                    cbxCommandeLivreSuivi.SelectedValue.ToString()
+                );
+            }
+            else
+            {
+                MessageBox.Show("Aucune opération sélectionnée.", "Information");
+                return;
+            }
+
+            if (ok)
+            {
+                MessageBox.Show("Opération réussie.", "Information");
+                lesCommandesLivres = controller.GetCommandesDocument(livreCommandeSelectionne.Id);
+                RemplirCommandeLivresListe(lesCommandesLivres);
+                ViderGestionCommandeLivre();
+                ActiverGestionCommandeLivre(false);
+                txbCommandeLivreIdCommande.Enabled = true;
+                dtpCommandeLivreDateCommande.Enabled = true;
+                txbCommandeLivreMontant.Enabled = true;
+                txbCommandeLivreNbExemplaire.Enabled = true;
+                modeGestionCommandeLivre = "";
+            }
+            else
+            {
+                MessageBox.Show("Opération impossible.", "Erreur");
+            }
+
+
+        }
+
+        /// <summary>
+        /// Charge une commande de livre dans la zone de gestion
+        /// </summary>
+        /// <param name="commande">commande sélectionnée</param>
+        private void ChargerGestionCommandeLivre(CommandeDocumentSuivi commande)
+        {
+            txbCommandeLivreIdCommande.Text = commande.Id;
+            dtpCommandeLivreDateCommande.Value = commande.DateCommande;
+            txbCommandeLivreMontant.Text = commande.Montant.ToString();
+            txbCommandeLivreNbExemplaire.Text = commande.NbExemplaire.ToString();
+            cbxCommandeLivreSuivi.SelectedValue = commande.IdSuivi;
+        }
+
+        /// <summary>
+        /// Prépare la modification du suivi d'une commande de livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnModifierSuiviCommandeLivre_Click(object sender, EventArgs e)
+        {
+            if (dgvCommandeLivresListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne une commande.", "Information");
+                return;
+            }
+
+            CommandeDocumentSuivi commande = (CommandeDocumentSuivi)bdgCommandeLivresListe.List[bdgCommandeLivresListe.Position];
+            modeGestionCommandeLivre = "modification";
+            ChargerGestionCommandeLivre(commande);
+            ActiverGestionCommandeLivre(true);
+
+            txbCommandeLivreIdCommande.Enabled = false;
+            dtpCommandeLivreDateCommande.Enabled = false;
+            txbCommandeLivreMontant.Enabled = false;
+            txbCommandeLivreNbExemplaire.Enabled = false;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Supprime une commande de livre
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btnSupprimerCommandeLivre_Click(object sender, EventArgs e)
+        {
+            if (dgvCommandeLivresListe.CurrentCell == null)
+            {
+                MessageBox.Show("Sélectionne une commande.", "Information");
+                return;
+            }
+
+            CommandeDocumentSuivi commande = (CommandeDocumentSuivi)bdgCommandeLivresListe.List[bdgCommandeLivresListe.Position];
+
+            DialogResult reponse = MessageBox.Show(
+                "Voulez-vous vraiment supprimer cette commande ?",
+                "Confirmation",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (reponse == DialogResult.Yes)
+            {
+                if (controller.SupprimerCommandeDocument(commande.Id))
+                {
+                    MessageBox.Show("Commande supprimée.", "Information");
+                    lesCommandesLivres = controller.GetCommandesDocument(livreCommandeSelectionne.Id);
+                    RemplirCommandeLivresListe(lesCommandesLivres);
+                    ViderGestionCommandeLivre();
+                    ActiverGestionCommandeLivre(false);
+                    txbCommandeLivreIdCommande.Enabled = true;
+                    dtpCommandeLivreDateCommande.Enabled = true;
+                    txbCommandeLivreMontant.Enabled = true;
+                    txbCommandeLivreNbExemplaire.Enabled = true;
+                    modeGestionCommandeLivre = "";
+                }
+                else
+                {
+                    MessageBox.Show("Suppression impossible.", "Erreur");
+                }
+            }
+        }
+
+
     }
 }
+
+
+
+
+
+
+

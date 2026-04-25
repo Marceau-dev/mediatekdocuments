@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using MediaTekDocuments.manager;
 using MediaTekDocuments.model;
-using MediaTekDocuments.manager;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace MediaTekDocuments.dal
 {
@@ -37,6 +38,12 @@ namespace MediaTekDocuments.dal
         private const string POST = "POST";
         /// <summary>
         /// méthode HTTP pour update
+        /// </summary>
+        private const string PUT = "PUT";
+        /// <summary>
+        /// méthode HTTP pour delete
+        /// </summary>
+        private const string DELETE = "DELETE";
 
         /// <summary>
         /// Méthode privée pour créer un singleton
@@ -144,6 +151,29 @@ namespace MediaTekDocuments.dal
         }
 
         /// <summary>
+        /// Retourne toutes les étapes de suivi à partir de la BDD
+        /// </summary>
+        /// <returns>Liste d'objets Suivi</returns>
+        public List<Suivi> GetAllSuivis()
+        {
+            List<Suivi> lesSuivis = TraitementRecup<Suivi>(GET, "suivi", null);
+            return lesSuivis;
+        }
+
+        /// <summary>
+        /// Retourne les commandes d'un livre ou dvd
+        /// </summary>
+        /// <param name="idLivreDvd">id du document concerné</param>
+        /// <returns>Liste des commandes du document</returns>
+        public List<CommandeDocumentSuivi> GetCommandesDocument(string idLivreDvd)
+        {
+            string jsonIdDocument = convertToJson("idLivreDvd", idLivreDvd);
+            List<CommandeDocumentSuivi> lesCommandes = TraitementRecup<CommandeDocumentSuivi>(GET, "commandedocument/" + jsonIdDocument, null);
+            return lesCommandes;
+        }
+
+
+        /// <summary>
         /// ecriture d'un exemplaire en base de données
         /// </summary>
         /// <param name="exemplaire">exemplaire à insérer</param>
@@ -162,6 +192,332 @@ namespace MediaTekDocuments.dal
             }
             return false;
         }
+
+        /// <summary>
+        /// ecriture d'un livre en base de données
+        /// </summary>
+        /// <param name="livre">livre à insérer</param>
+        /// <returns>true si l'insertion a pu se faire (retour != null)</returns>
+        public bool CreerLivre(Livre livre)
+        {
+            string jsonLivre = JsonConvert.SerializeObject(new
+            {
+                id = livre.Id,
+                titre = livre.Titre,
+                image = livre.Image,
+                idGenre = livre.IdGenre,
+                idPublic = livre.IdPublic,
+                idRayon = livre.IdRayon,
+                isbn = livre.Isbn,
+                auteur = livre.Auteur,
+                collection = livre.Collection
+            });
+
+            try
+            {
+                List<Livre> liste = TraitementRecup<Livre>(POST, "livre", "champs=" + jsonLivre);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// ecriture d'un dvd en base de données
+        /// </summary>
+        /// <param name="dvd">dvd à insérer</param>
+        /// <returns>true si l'insertion a pu se faire (retour != null)</returns>
+        public bool CreerDvd(Dvd dvd)
+        {
+            string jsonDvd = JsonConvert.SerializeObject(new
+            {
+                id = dvd.Id,
+                titre = dvd.Titre,
+                image = dvd.Image,
+                idGenre = dvd.IdGenre,
+                idPublic = dvd.IdPublic,
+                idRayon = dvd.IdRayon,
+                synopsis = dvd.Synopsis,
+                realisateur = dvd.Realisateur,
+                duree = dvd.Duree
+            });
+
+            try
+            {
+                List<Dvd> liste = TraitementRecup<Dvd>(POST, "dvd", "champs=" + jsonDvd);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// ecriture d'une revue en base de données
+        /// </summary>
+        /// <param name="revue">revue à insérer</param>
+        /// <returns>true si l'insertion a pu se faire (retour != null)</returns>
+        public bool CreerRevue(Revue revue)
+        {
+            string jsonRevue = JsonConvert.SerializeObject(new
+            {
+                id = revue.Id,
+                titre = revue.Titre,
+                image = revue.Image,
+                idGenre = revue.IdGenre,
+                idPublic = revue.IdPublic,
+                idRayon = revue.IdRayon,
+                periodicite = revue.Periodicite,
+                delaiMiseADispo = revue.DelaiMiseADispo
+            });
+
+            try
+            {
+                List<Revue> liste = TraitementRecup<Revue>(POST, "revue", "champs=" + jsonRevue);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Ajout d'une commande de livre ou dvd en base
+        /// </summary>
+        /// <param name="id">id de la commande</param>
+        /// <param name="dateCommande">date de la commande</param>
+        /// <param name="montant">montant</param>
+        /// <param name="nbExemplaire">nombre d'exemplaires</param>
+        /// <param name="idLivreDvd">id du livre ou dvd</param>
+        /// <returns>true si l'ajout a pu se faire</returns>
+        public bool CreerCommandeDocument(string id, DateTime dateCommande, double montant, int nbExemplaire, string idLivreDvd)
+        {
+            string jsonCommande = JsonConvert.SerializeObject(new
+            {
+                id = id,
+                dateCommande = dateCommande.ToString("yyyy-MM-dd"),
+                montant = montant,
+                nbExemplaire = nbExemplaire,
+                idLivreDvd = idLivreDvd
+            });
+
+            try
+            {
+                List<CommandeDocumentSuivi> liste = TraitementRecup<CommandeDocumentSuivi>(POST, "commandedocument", "champs=" + jsonCommande);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// modification d'un livre en base de données
+        /// </summary>
+        /// <param name="id">id du livre à modifier</param>
+        /// <param name="livre">livre avec les nouvelles valeurs</param>
+        /// <returns>true si la modification a pu se faire</returns>
+        public bool ModifierLivre(string id, Livre livre)
+        {
+            string jsonLivre = JsonConvert.SerializeObject(new
+            {
+                titre = livre.Titre,
+                image = livre.Image,
+                idGenre = livre.IdGenre,
+                idPublic = livre.IdPublic,
+                idRayon = livre.IdRayon,
+                isbn = livre.Isbn,
+                auteur = livre.Auteur,
+                collection = livre.Collection
+            });
+
+            try
+            {
+                List<Livre> liste = TraitementRecup<Livre>(PUT, "livre/" + id, "champs=" + jsonLivre);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        public bool ModifierDvd(string id, Dvd dvd)
+        {
+            string jsonDvd = JsonConvert.SerializeObject(new
+            {
+                titre = dvd.Titre,
+                image = dvd.Image,
+                idGenre = dvd.IdGenre,
+                idPublic = dvd.IdPublic,
+                idRayon = dvd.IdRayon,
+                synopsis = dvd.Synopsis,
+                realisateur = dvd.Realisateur,
+                duree = dvd.Duree
+            });
+
+            try
+            {
+                List<Dvd> liste = TraitementRecup<Dvd>(PUT, "dvd/" + id, "champs=" + jsonDvd);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// modification d'une revue en base de données
+        /// </summary>
+        /// <param name="id">id de la revue à modifier</param>
+        /// <param name="revue">revue avec les nouvelles valeurs</param>
+        /// <returns>true si la modification a pu se faire</returns>
+        public bool ModifierRevue(string id, Revue revue)
+        {
+            string jsonRevue = JsonConvert.SerializeObject(new
+            {
+                titre = revue.Titre,
+                image = revue.Image,
+                idGenre = revue.IdGenre,
+                idPublic = revue.IdPublic,
+                idRayon = revue.IdRayon,
+                periodicite = revue.Periodicite,
+                delaiMiseADispo = revue.DelaiMiseADispo
+            });
+
+            try
+            {
+                List<Revue> liste = TraitementRecup<Revue>(PUT, "revue/" + id, "champs=" + jsonRevue);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Modifie le suivi d'une commande de livre ou dvd
+        /// </summary>
+        /// <param name="id">id de la commande</param>
+        /// <param name="idSuivi">nouvel id de suivi</param>
+        /// <returns>true si la modification a pu se faire</returns>
+        public bool ModifierSuiviCommandeDocument(string id, string idSuivi)
+        {
+            string jsonSuivi = JsonConvert.SerializeObject(new
+            {
+                idSuivi = idSuivi
+            });
+
+            try
+            {
+                List<CommandeDocumentSuivi> liste = TraitementRecup<CommandeDocumentSuivi>(PUT, "commandedocument/" + id, "champs=" + jsonSuivi);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// suppression d'un livre en base de données
+        /// </summary>
+        /// <param name="id">id du livre à supprimer</param>
+        /// <returns>true si la suppression a pu se faire</returns>
+        public bool SupprimerLivre(string id)
+        {
+            string jsonId = convertToJson("id", id);
+
+            try
+            {
+                List<Livre> liste = TraitementRecup<Livre>(DELETE, "livre/" + jsonId, null);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// suppression d'un dvd en base de données
+        /// </summary>
+        /// <param name="id">id du dvd à supprimer</param>
+        /// <returns>true si la suppression a pu se faire</returns>
+        public bool SupprimerDvd(string id)
+        {
+            string jsonId = convertToJson("id", id);
+
+            try
+            {
+                List<Dvd> liste = TraitementRecup<Dvd>(DELETE, "dvd/" + jsonId, null);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// suppression d'une revue en base de données
+        /// </summary>
+        /// <param name="id">id de la revue à supprimer</param>
+        /// <returns>true si la suppression a pu se faire</returns>
+        public bool SupprimerRevue(string id)
+        {
+            string jsonId = convertToJson("id", id);
+
+            try
+            {
+                List<Revue> liste = TraitementRecup<Revue>(DELETE, "revue/" + jsonId, null);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Supprime une commande de livre ou dvd
+        /// </summary>
+        /// <param name="id">id de la commande</param>
+        /// <returns>true si la suppression a pu se faire</returns>
+        public bool SupprimerCommandeDocument(string id)
+        {
+            string jsonId = convertToJson("id", id);
+
+            try
+            {
+                List<CommandeDocumentSuivi> liste = TraitementRecup<CommandeDocumentSuivi>(DELETE, "commandedocument/" + jsonId,null);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
 
         /// <summary>
         /// Traitement de la récupération du retour de l'api, avec conversion du json en liste pour les select (GET)
@@ -190,11 +546,18 @@ namespace MediaTekDocuments.dal
                         liste = JsonConvert.DeserializeObject<List<T>>(resultString, new CustomBooleanJsonConverter());
                     }
                 }
+                else if (code.Equals("400") && (String)retour["message"] == "id déjà existant")
+                {
+                    MessageBox.Show((String)retour["message"]);
+                    return null;
+                }
                 else
                 {
                     Console.WriteLine("code erreur = " + code + " message = " + (String)retour["message"]);
+                    return null;
                 }
-            }catch(Exception e)
+            }
+            catch(Exception e)
             {
                 Console.WriteLine("Erreur lors de l'accès à l'API : "+e.Message);
                 Environment.Exit(0);
