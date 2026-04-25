@@ -109,6 +109,17 @@ namespace MediaTekDocuments.controller
         }
 
         /// <summary>
+        /// Retourne les abonnements d'une revue
+        /// </summary>
+        /// <param name="idRevue">id de la revue concernée</param>
+        /// <returns>Liste des abonnements</returns>
+        public List<Abonnement> GetAbonnementsRevue(string idRevue)
+        {
+            return access.GetAbonnementsRevue(idRevue);
+        }
+
+
+        /// <summary>
         /// Crée un exemplaire d'une revue dans la bdd
         /// </summary>
         /// <param name="exemplaire">L'objet Exemplaire concerné</param>
@@ -160,6 +171,20 @@ namespace MediaTekDocuments.controller
         public bool CreerCommandeDocument(string id, DateTime dateCommande, double montant, int nbExemplaire, string idLivreDvd)
         {
             return access.CreerCommandeDocument(id, dateCommande, montant, nbExemplaire, idLivreDvd);
+        }
+
+        /// <summary>
+        /// Crée un abonnement
+        /// </summary>
+        /// <param name="id">id de la commande</param>
+        /// <param name="dateCommande">date de commande</param>
+        /// <param name="montant">montant</param>
+        /// <param name="dateFinAbonnement">date de fin d'abonnement</param>
+        /// <param name="idRevue">id de la revue</param>
+        /// <returns>True si la création a pu se faire</returns>
+        public bool CreerAbonnement(string id, DateTime dateCommande, double montant, DateTime dateFinAbonnement, string idRevue)
+        {
+            return access.CreerAbonnement(id, dateCommande, montant, dateFinAbonnement, idRevue);
         }
 
         /// <summary>
@@ -245,5 +270,29 @@ namespace MediaTekDocuments.controller
         {
             return access.SupprimerCommandeDocument(id);
         }
+
+        /// <summary>
+        /// Indique si une date de parution est comprise dans la période d'un abonnement
+        /// </summary>
+        /// <param name="dateCommande">date de début</param>
+        /// <param name="dateFinAbonnement">date de fin</param>
+        /// <param name="dateParution">date de parution</param>
+        /// <returns>true si la parution est dans l'abonnement</returns>
+        public bool ParutionDansAbonnement(DateTime dateCommande, DateTime dateFinAbonnement, DateTime dateParution)
+        {
+            return dateParution >= dateCommande && dateParution <= dateFinAbonnement;
+        }
+
+        /// <summary>
+        /// Supprime un abonnement
+        /// </summary>
+        /// <param name="id">id de l'abonnement</param>
+        /// <returns>True si la suppression a pu se faire</returns>
+        public bool SupprimerAbonnement(string id)
+        {
+            return access.SupprimerAbonnement(id);
+        }
+
+
     }
 }

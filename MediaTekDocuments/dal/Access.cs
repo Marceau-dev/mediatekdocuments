@@ -321,6 +321,51 @@ namespace MediaTekDocuments.dal
         }
 
         /// <summary>
+        /// Ajout d'un abonnement en base
+        /// </summary>
+        /// <param name="id">id de la commande</param>
+        /// <param name="dateCommande">date de la commande</param>
+        /// <param name="montant">montant</param>
+        /// <param name="dateFinAbonnement">date de fin d'abonnement</param>
+        /// <param name="idRevue">id de la revue</param>
+        /// <returns>true si l'ajout a pu se faire</returns>
+        public bool CreerAbonnement(string id, DateTime dateCommande, double montant, DateTime dateFinAbonnement, string idRevue)
+        {
+            string jsonAbonnement = JsonConvert.SerializeObject(new
+            {
+                id = id,
+                dateCommande = dateCommande.ToString("yyyy-MM-dd"),
+                montant = montant,
+                dateFinAbonnement = dateFinAbonnement.ToString("yyyy-MM-dd"),
+                idRevue = idRevue
+            });
+
+            try
+            {
+                List<Abonnement> liste = TraitementRecup<Abonnement>(POST, "abonnement", "champs=" + jsonAbonnement);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Retourne les abonnements d'une revue
+        /// </summary>
+        /// <param name="idRevue">id de la revue concernée</param>
+        /// <returns>Liste des abonnements de la revue</returns>
+        public List<Abonnement> GetAbonnementsRevue(string idRevue)
+        {
+            string jsonIdRevue = convertToJson("idRevue", idRevue);
+            List<Abonnement> lesAbonnements = TraitementRecup<Abonnement>(GET, "abonnement/" + jsonIdRevue, null);
+            return lesAbonnements;
+        }
+
+
+        /// <summary>
         /// modification d'un livre en base de données
         /// </summary>
         /// <param name="id">id du livre à modifier</param>
@@ -518,6 +563,26 @@ namespace MediaTekDocuments.dal
             return false;
         }
 
+        /// <summary>
+        /// Supprime un abonnement
+        /// </summary>
+        /// <param name="id">id de l'abonnement</param>
+        /// <returns>true si la suppression a pu se faire</returns>
+        public bool SupprimerAbonnement(string id)
+        {
+            string jsonId = convertToJson("id", id);
+
+            try
+            {
+                List<Abonnement> liste = TraitementRecup<Abonnement>(DELETE, "abonnement/"+ jsonId,null);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
 
         /// <summary>
         /// Traitement de la récupération du retour de l'api, avec conversion du json en liste pour les select (GET)
