@@ -21,11 +21,30 @@ namespace MediaTekDocuments
 
             FrmAuthentification frmAuthentification = new FrmAuthentification();
 
-            if (frmAuthentification.ShowDialog() ==  DialogResult.OK)
+            if (frmAuthentification.ShowDialog() == DialogResult.OK)
             {
                 Utilisateur utilisateur = frmAuthentification.UtilisateurConnecte;
+
+                if (utilisateur == null)
+                {
+                    return;
+                }
+
+                if ("S3".Equals(utilisateur.IdService))
+                {
+                    MessageBox.Show(
+                        "Vos droits ne sont pas suffisants pour accéder à cette application.",
+                        "Accès refusé",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+                    return;
+                }
+
                 Application.Run(new FrmMediatek(utilisateur));
             }
+
+
         }
     }
 }

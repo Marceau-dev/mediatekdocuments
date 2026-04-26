@@ -52,13 +52,6 @@ namespace MediaTekDocuments.view
                 return;
             }
 
-            if ("S3".Equals(utilisateurConnecte.IdService))
-            {
-                MessageBox.Show("Vos droits ne sont pas suffisants pour accéder à cette application.", "Information");
-                Application.Exit();
-                return;
-            }
-
             if ("S2".Equals(utilisateurConnecte.IdService))
             {
                 AppliquerModeConsultation();
