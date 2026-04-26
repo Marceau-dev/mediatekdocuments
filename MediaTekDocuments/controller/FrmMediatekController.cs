@@ -137,6 +137,18 @@ namespace MediaTekDocuments.controller
         }
 
         /// <summary>
+        /// Retourne l'utilisateur correspondant au login et au mot de passe saisis.
+        /// </summary>
+        /// <param name="login">Login de l'utilisateur</param>
+        /// <param name="pwd">Mot de passe de l'utilisateur</param>
+        /// <returns>Objet Utilisateur si trouvé, sinon null</returns>
+        public Utilisateur GetUtilisateur(string login, string pwd)
+        {
+            return access.GetUtilisateur(login, pwd);
+        }
+
+
+        /// <summary>
         /// Crée un exemplaire d'une revue dans la bdd
         /// </summary>
         /// <param name="exemplaire">L'objet Exemplaire concerné</param>

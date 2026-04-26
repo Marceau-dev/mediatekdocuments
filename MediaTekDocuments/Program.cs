@@ -1,9 +1,13 @@
-﻿using MediaTekDocuments.view;
+﻿using MediaTekDocuments.model;
+using MediaTekDocuments.view;
 using System;
 using System.Windows.Forms;
 
 namespace MediaTekDocuments
 {
+    /// <summary>
+    /// Point d'entrée principal de l'application.
+    /// </summary>
     static class Program
     {
         /// <summary>
@@ -14,7 +18,14 @@ namespace MediaTekDocuments
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmMediatek());
+
+            FrmAuthentification frmAuthentification = new FrmAuthentification();
+
+            if (frmAuthentification.ShowDialog() ==  DialogResult.OK)
+            {
+                Utilisateur utilisateur = frmAuthentification.UtilisateurConnecte;
+                Application.Run(new FrmMediatek(utilisateur));
+            }
         }
     }
 }

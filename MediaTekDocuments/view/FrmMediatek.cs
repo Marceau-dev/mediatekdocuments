@@ -21,15 +21,120 @@ namespace MediaTekDocuments.view
         private readonly BindingSource bdgPublics = new BindingSource();
         private readonly BindingSource bdgRayons = new BindingSource();
 
+
+
+        /// <summary>
+        /// Utilisateur connecté à l'application.
+        /// </summary>
+        private readonly Utilisateur utilisateurConnecte;
+
         /// <summary>
         /// Constructeur : création du contrôleur lié à ce formulaire
         /// </summary>
-        internal FrmMediatek()
+        internal FrmMediatek(Utilisateur utilisateurConnecte)
         {
             InitializeComponent();
             this.controller = new FrmMediatekController();
-            AlerteFinAbonnements();
+            this.utilisateurConnecte = utilisateurConnecte;
+
+            AppliquerDroits();
         }
+
+        /// <summary>
+        /// Applique les droits d'accès selon le service de l'utilisateur connecté.
+        /// </summary>
+        private void AppliquerDroits()
+        {
+            if (utilisateurConnecte == null)
+            {
+                MessageBox.Show("Utilisateur non authentifié.", "Erreur");
+                Application.Exit();
+                return;
+            }
+
+            if ("S3".Equals(utilisateurConnecte.IdService))
+            {
+                MessageBox.Show("Vos droits ne sont pas suffisants pour accéder à cette application.", "Information");
+                Application.Exit();
+                return;
+            }
+
+            if ("S2".Equals(utilisateurConnecte.IdService))
+            {
+                AppliquerModeConsultation();
+                return;
+            }
+
+            if ("S1".Equals(utilisateurConnecte.IdService))
+            {
+                AlerteFinAbonnements();
+            }
+        }
+
+        /// <summary>
+        /// Configure l'interface en mode consultation.
+        /// </summary>
+        private void AppliquerModeConsultation()
+        {
+            tabOngletsApplication.TabPages.Remove(tabCommandesLivres);
+            tabOngletsApplication.TabPages.Remove(tabCommandesDVD);
+            tabOngletsApplication.TabPages.Remove(tabCommandesRevues);
+            btnNouveauLivre.Visible = false;
+            btnModifierLivre.Visible = false;
+            btnSupprimerLivre.Visible = false;
+            btnValiderLivre.Visible = false;
+
+            btnNouveauDvd.Visible = false;
+            btnModifierDvd.Visible = false;
+            btnSupprimerDvd.Visible = false;
+            btnValiderDvd.Visible = false;
+
+            btnNouvelleCommandeLivre.Visible = false;
+            btnValiderCommandeLivre.Visible = false;
+            btnModifierSuiviCommandeLivre.Visible = false;
+            btnSupprimerCommandeLivre.Visible = false;
+
+            btnNouvelleCommandeDvd.Visible = false;
+            btnValiderCommandeDvd.Visible = false;
+            btnModifierSuiviCommandeDvd.Visible = false;
+            btnSupprimerCommandeDvd.Visible = false;
+
+            btnNouvelleCommandeRevue.Visible = false;
+            btnValiderCommandeRevue.Visible = false;
+            btnSupprimerCommandeRevue.Visible = false;
+
+            btnLivresExemplaireModifierEtat.Visible = false;
+            btnLivresExemplaireSupprimer.Visible = false;
+            cbxLivresExemplaireEtat.Enabled = false;
+
+            btnDvdExemplaireModifierEtat.Visible = false;
+            btnDvdExemplaireSupprimer.Visible = false;
+            cbxDvdExemplaireEtat.Enabled = false;
+
+            btnReceptionExemplaireValider.Visible = false;
+            btnReceptionExemplaireModifierEtat.Visible = false;
+            btnReceptionExemplaireSupprimer.Visible = false;
+            cbxReceptionExemplaireEtat.Enabled = false;
+
+            grbGestionLivres.Enabled = false;
+            grbGestionDvd.Enabled = false;
+            grbGestionRevues.Enabled = false;
+            grbGestionExemplairesRevues.Enabled = false;
+            grpCommandeLivreGestion.Enabled = false;
+            grpCommandeDvdGestion.Enabled = false;
+            grpCommandeRevueGestion.Enabled = false;
+            grpReceptionExemplaire.Enabled = false;
+            grbGestionLivres.Visible = false;
+            grbGestionDvd.Visible = false;
+            grbGestionRevues.Visible = false;
+            grbGestionExemplairesRevues.Visible = false;
+            grpCommandeLivreGestion.Visible = false;
+            grpCommandeDvdGestion.Visible = false;
+            grpCommandeRevueGestion.Visible = false;
+            grpReceptionExemplaire.Visible = false;
+        }
+
+
 
         /// <summary>
         /// Rempli un des 3 combo (genre, public, rayon)

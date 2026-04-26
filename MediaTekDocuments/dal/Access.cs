@@ -182,6 +182,30 @@ namespace MediaTekDocuments.dal
         }
 
         /// <summary>
+        /// Retourne l'utilisateur correspondant au login et au mot de passe saisis.
+        /// </summary>
+        /// <param name="login">Login de l'utilisateur</param>
+        /// <param name="pwd">Mot de passe de l'utilisateur</param>
+        /// <returns>Objet Utilisateur si trouvé, sinon null</returns>
+        public Utilisateur GetUtilisateur(string login, string pwd)
+        {
+            string jsonAuth = JsonConvert.SerializeObject(new
+            {
+                login = login,
+                pwd = pwd
+            });
+
+            List<Utilisateur> lesUtilisateurs = TraitementRecup<Utilisateur>(GET, "utilisateur/" + Uri.EscapeDataString(jsonAuth), null);
+
+            if (lesUtilisateurs != null && lesUtilisateurs.Count > 0)
+            {
+                return lesUtilisateurs[0];
+            }
+            return null;
+        }
+
+
+        /// <summary>
         /// ecriture d'un exemplaire en base de données
         /// </summary>
         /// <param name="exemplaire">exemplaire à insérer</param>
