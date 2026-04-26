@@ -54,7 +54,11 @@ namespace MediaTekDocuments.dal
             String authenticationString;
             try
             {
-                authenticationString = "admin:adminpwd";
+                authenticationString = ConfigurationManager.AppSettings["apiAuth"];
+                if (string.IsNullOrEmpty(authenticationString))
+                {
+                    throw new Exception("Le paramètre apiAuth est absent du fichier App.config.");
+                }
                 api = ApiRest.GetInstance(uriApi, authenticationString);
             }
             catch (Exception e)
