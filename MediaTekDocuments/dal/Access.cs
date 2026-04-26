@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Windows.Forms;
+using System.IO;
+
 
 namespace MediaTekDocuments.dal
 {
@@ -16,6 +18,22 @@ namespace MediaTekDocuments.dal
     /// </summary>
     public class Access
     {
+        /// <summary>
+        /// Chemin du fichier de logs.
+        /// </summary>
+        private static readonly string logFilePath = "logs.txt";
+
+        /// <summary>
+        /// Ecrit un message dans le fichier de logs.
+        /// </summary>
+        /// <param name="message">Message à enregistrer</param>
+        private void EcrireLog(string message)
+        {
+            string ligne = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message;
+            File.AppendAllText(logFilePath, ligne + Environment.NewLine);
+        }
+
+
         /// <summary>
         /// adresse de l'API
         /// </summary>
@@ -63,7 +81,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                EcrireLog(e.Message);
                 Environment.Exit(0);
             }
         }
@@ -232,7 +250,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -264,7 +282,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -296,7 +314,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -327,7 +345,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -359,7 +377,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -391,7 +409,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -444,7 +462,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -470,7 +488,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -501,7 +519,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -526,7 +544,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -554,7 +572,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -576,7 +594,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -597,7 +615,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -618,7 +636,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -639,7 +657,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -660,7 +678,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -686,7 +704,7 @@ namespace MediaTekDocuments.dal
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                EcrireLog(ex.Message);
             }
             return false;
         }
@@ -725,13 +743,13 @@ namespace MediaTekDocuments.dal
                 }
                 else
                 {
-                    Console.WriteLine("code erreur = " + code + " message = " + (String)retour["message"]);
+                    EcrireLog("code erreur = " + code + " message = " + (String)retour["message"]);
                     return null;
                 }
             }
             catch(Exception e)
             {
-                Console.WriteLine("Erreur lors de l'accès à l'API : "+e.Message);
+                EcrireLog("Erreur lors de l'accès à l'API : "+e.Message);
                 Environment.Exit(0);
             }
             return liste;

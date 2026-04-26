@@ -830,7 +830,7 @@ namespace MediaTekDocuments.view
         private void dgvLivresExemplairesListe_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             string titreColonne = dgvLivresExemplairesListe.Columns[e.ColumnIndex].HeaderText;
-            List<Exemplaire> sortedList = new List<Exemplaire>();
+            List<Exemplaire> sortedList;
 
             switch (titreColonne)
             {
@@ -1253,7 +1253,7 @@ namespace MediaTekDocuments.view
         private void dgvDvdExemplairesListe_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             string titreColonne = dgvDvdExemplairesListe.Columns[e.ColumnIndex].HeaderText;
-            List<Exemplaire> sortedList = new List<Exemplaire>();
+            List<Exemplaire> sortedList;
 
             switch (titreColonne)
             {
@@ -2557,8 +2557,8 @@ namespace MediaTekDocuments.view
                 return;
             }
 
-            List<Livre> lesLivres = controller.GetAllLivres();
-            Livre livre = lesLivres.Find(x => x.Id.Equals(txbCommandeLivreNumeroRecherche.Text.Trim()));
+            List<Livre> livresTrouves = controller.GetAllLivres();
+            Livre livre = livresTrouves.Find(x => x.Id.Equals(txbCommandeLivreNumeroRecherche.Text.Trim()));
 
             if (livre == null)
             {
