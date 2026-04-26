@@ -128,6 +128,15 @@ namespace MediaTekDocuments.controller
         }
 
         /// <summary>
+        /// Retourne tous les états
+        /// </summary>
+        /// <returns>Liste d'objets Etat</returns>
+        public List<Etat> GetAllEtats()
+        {
+            return access.GetAllEtats();
+        }
+
+        /// <summary>
         /// Crée un exemplaire d'une revue dans la bdd
         /// </summary>
         /// <param name="exemplaire">L'objet Exemplaire concerné</param>
@@ -240,6 +249,19 @@ namespace MediaTekDocuments.controller
         }
 
         /// <summary>
+        /// Modifie l'état d'un exemplaire
+        /// </summary>
+        /// <param name="id">id du document</param>
+        /// <param name="numero">numéro de l'exemplaire</param>
+        /// <param name="idEtat">nouvel état</param>
+        /// <returns>True si la modification a pu se faire</returns>
+        public bool ModifierEtatExemplaire(string id, int numero, string idEtat)
+        {
+            return access.ModifierEtatExemplaire(id, numero, idEtat);
+        }
+
+
+        /// <summary>
         /// Supprime un livre dans la bdd
         /// </summary>
         /// <param name="id">id du livre à supprimer</param>
@@ -277,6 +299,17 @@ namespace MediaTekDocuments.controller
         public bool SupprimerCommandeDocument(string id)
         {
             return access.SupprimerCommandeDocument(id);
+        }
+
+        /// <summary>
+        /// Supprime un exemplaire
+        /// </summary>
+        /// <param name="id">id du document</param>
+        /// <param name="numero">numéro de l'exemplaire</param>
+        /// <returns>True si la suppression a pu se faire</returns>
+        public bool SupprimerExemplaire(string id, int numero)
+        {
+            return access.SupprimerExemplaire(id, numero);
         }
 
         /// <summary>

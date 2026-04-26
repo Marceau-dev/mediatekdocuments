@@ -172,6 +172,14 @@ namespace MediaTekDocuments.dal
             return lesCommandes;
         }
 
+        /// <summary>
+        /// Retourne tous les états
+        /// </summary>
+        /// <returns>Liste d'objets Etat</returns>
+        public List<Etat> GetAllEtats()
+        {
+            return TraitementRecup<Etat>(GET, "etat", null);
+        }
 
         /// <summary>
         /// ecriture d'un exemplaire en base de données
@@ -180,7 +188,15 @@ namespace MediaTekDocuments.dal
         /// <returns>true si l'insertion a pu se faire (retour != null)</returns>
         public bool CreerExemplaire(Exemplaire exemplaire)
         {
-            String jsonExemplaire = JsonConvert.SerializeObject(exemplaire, new CustomDateTimeConverter());
+            String jsonExemplaire = JsonConvert.SerializeObject(new
+            {
+                numero = exemplaire.Numero,
+                dateAchat = exemplaire.DateAchat.ToString("yyyy-MM-dd"),
+                photo = exemplaire.Photo,
+                idEtat = exemplaire.IdEtat,
+                id = exemplaire.Id
+            });
+
             try
             {
                 List<Exemplaire> liste = TraitementRecup<Exemplaire>(POST, "exemplaire", "champs=" + jsonExemplaire);
@@ -488,6 +504,35 @@ namespace MediaTekDocuments.dal
         }
 
         /// <summary>
+        /// Modifie l'état d'un exemplaire
+        /// </summary>
+        /// <param name="id">id du document</param>
+        /// <param name="numero">numéro de l'exemplaire</param>
+        /// <param name="idEtat">nouvel état</param>
+        /// <returns>true si la modification a pu se faire</returns>
+        public bool ModifierEtatExemplaire(string id, int numero, string idEtat)
+        {
+            string jsonExemplaire = JsonConvert.SerializeObject(new
+            {
+                id = id,
+                numero = numero,
+                idEtat = idEtat
+            });
+
+            try
+            {
+                List<Exemplaire> liste = TraitementRecup<Exemplaire>(PUT, "exemplaire", "champs=" + jsonExemplaire);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+
+        /// <summary>
         /// suppression d'un livre en base de données
         /// </summary>
         /// <param name="id">id du livre à supprimer</param>
@@ -583,6 +628,32 @@ namespace MediaTekDocuments.dal
             try
             {
                 List<Abonnement> liste = TraitementRecup<Abonnement>(DELETE, "abonnement/"+ jsonId,null);
+                return (liste != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Supprime un exemplaire
+        /// </summary>
+        /// <param name="id">id du document</param>
+        /// <param name="numero">numéro de l'exemplaire</param>
+        /// <returns>true si la suppression a pu se faire</returns>
+        public bool SupprimerExemplaire(string id, int numero)
+        {
+            string jsonId = Uri.EscapeDataString(JsonConvert.SerializeObject(new
+            {
+                id = id,
+                numero = numero
+            }));
+
+            try
+            {
+                List<Exemplaire> liste = TraitementRecup<Exemplaire>(DELETE, "exemplaire/" + jsonId, null);
                 return (liste != null);
             }
             catch (Exception ex)
