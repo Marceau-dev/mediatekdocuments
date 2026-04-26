@@ -364,6 +364,14 @@ namespace MediaTekDocuments.dal
             return lesAbonnements;
         }
 
+        /// <summary>
+        /// Retourne les abonnements qui se terminent dans moins de 30 jours
+        /// </summary>
+        /// <returns>Liste des abonnements concernés</returns>
+        public List<Abonnement> GetFinAbonnements()
+        {
+            return TraitementRecup<Abonnement>(GET, "finabonnement", null);
+        }
 
         /// <summary>
         /// modification d'un livre en base de données

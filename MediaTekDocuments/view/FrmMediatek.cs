@@ -28,6 +28,7 @@ namespace MediaTekDocuments.view
         {
             InitializeComponent();
             this.controller = new FrmMediatekController();
+            AlerteFinAbonnements();
         }
 
         /// <summary>
@@ -2914,6 +2915,31 @@ namespace MediaTekDocuments.view
                     MessageBox.Show("Suppression impossible.", "Erreur");
                 }
             }
+        }
+
+        /// <summary>
+        /// Affiche une alerte pour les abonnements se terminant dans moins de 30 jours
+        /// </summary>
+        private void AlerteFinAbonnements()
+        {
+            List<Abonnement> abonnements = controller.GetFinAbonnements();
+
+            if (abonnements == null || abonnements.Count == 0)
+            {
+                return;
+            }
+
+            string message = "Abonnements à surveiller :\n\n";
+
+            foreach (Abonnement abonnement in abonnements)
+            {
+                message += "Commande " + abonnement.Id
+                        + " - revue " + abonnement.IdRevue
+                        + " - fin le " + abonnement.DateFinAbonnement.ToShortDateString()
+                        + "\n";
+            }
+
+            MessageBox.Show(message, "Fin d'abonnements proche", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         #endregion
