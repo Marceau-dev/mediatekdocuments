@@ -32,12 +32,6 @@ namespace MediaTekDocuments.dal
             string ligne = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + message;
             File.AppendAllText(logFilePath, ligne + Environment.NewLine);
         }
-
-
-        /// <summary>
-        /// adresse de l'API
-        /// </summary>
-        private static readonly string uriApi = "http://localhost/rest_mediatekdocuments/";
         /// <summary>
         /// instance unique de la classe
         /// </summary>
@@ -77,7 +71,13 @@ namespace MediaTekDocuments.dal
                 {
                     throw new Exception("Le paramètre apiAuth est absent du fichier App.config.");
                 }
-                api = ApiRest.GetInstance(uriApi, authenticationString);
+
+                string apiUrl = ConfigurationManager.AppSettings["apiUrl"];
+                if (string.IsNullOrEmpty(apiUrl))
+                {
+                    throw new Exception("Le paramètre apiAuth est absent du fichier App.config.");
+                }
+                api = ApiRest.GetInstance(apiUrl, authenticationString);
             }
             catch (Exception e)
             {
